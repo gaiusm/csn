@@ -1,0 +1,15 @@
+#
+#  csn.conf - configuration file for mrun
+#
+#  Format
+#
+#  synonym:  machinename { machinename }
+#
+#  for example
+#
+#  localhost:  localhost
+#  x86_64: mcgreg j109-01.isd.comp.glam.ac.uk
+#  arm64:  odroid64 linero-alip
+
+localhost:  localhost
+# x86_64: mcgreg.comp.glam.ac.uk trj109-[01-40]-imac.isd.glam.ac.uk trj210-[01-40].isd.glam.ac.uk

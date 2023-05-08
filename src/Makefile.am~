@@ -1,0 +1,64 @@
+SUFFIXES = .c .mod .def .o .obj .lo .a .m .mxm
+
+SHELL=/bin/bash
+
+prefix= @prefix@
+datarootdir= @datarootdir@
+srcdir= @srcdir@
+mandir= @mandir@
+exec_prefix=@exec_prefix@
+bindir= @bindir@
+INSTALL_PROGRAM = install
+
+TEXI2HTML=python $(srcdir)/www/tools/texi2tr/src/texi2tr.py
+PYTHON_VERSION=$(strip $(shell python3 -V 2>&1 | cut -b8- | cut -f1-2 -d'.'))
+# GCC_DEFAULT_LIB=/opt/gm2/lib64    # for amd64
+GCC_DEFAULT_LIB=/opt/gm2/lib      # for arm
+
+
+
+ACLOCAL_AMFLAGS=-I m4
+
+help:  force
+	@echo "knows about:  all, build, clean"
+
+noinst_LTLIBRARIES = libcsn.la
+
+libcsn_la_SOURCES = Indexing.mod SymbolKey.mod NameKey.mod Lock.mod execArgs.mod \
+          SysTypes.mod csn.mod nameserver.mod csnwrapper.c SocketControl.c
+
+MY_DEPS = Indexing.lo SymbolKey.lo NameKey.lo Lock.lo execArgs.lo \
+          SysTypes.lo csn.lo nameserver.lo csnwrapper.lo SocketControl.lo
+
+.mod.lo:
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile gm2 -g -fm2-g -fpim -flibs=cor,pim $(OPT) $(CHECK) -fextended-opaque -I. -I$(srcdir) -c $< -o $@
+
+libcsn:  $(MY_DEPS)
+	swig -outdir . -o csnif_wrap.cxx -c++ -python $(top_srcdir)/csn.i
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c csnif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o csnif_wrap.lo
+	gm2 $(CHECK) -c -g -fm2-g $(SRC_PATH_PIM) -fpim -flibs=cor,pim,iso -fmakelist -I$(srcdir) $(srcdir)/csn.mod
+	gm2 $(CHECK) -c -g -fm2-g $(SRC_PATH_PIM) -fpim -flibs=cor,pim,iso -fmakeinit -fshared -I$(srcdir) $(srcdir)/csn.mod
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_csn.cpp -o csn_m2.lo
+	$(LIBTOOL) --tag=CC --mode=link gcc -g csn_m2.lo $(MY_DEPS) \
+            csnif_wrap.lo \
+           -L$(GCC_DEFAULT_LIB) \
+           -rpath `pwd` -lm2cor -lm2pim -lm2iso -lgcc -lstdc++ -lc -lm -o libcsn.la
+	cp .libs/libcsn.so ../_csn.so
+	cp csn.py ../csn.py
+
+speed:  libcsn
+	$(LIBTOOL) --tag=CC --mode=compile gm2 -I$(srcdir) -g -c $(srcdir)/speed.mod -fpim -flibs=cor,pim,iso -o speed.lo
+	$(LIBTOOL) --tag=CC --mode=link gm2 -g -I$(srcdir) -flibs=cor,pim,iso $(srcdir)/speed.mod speed.lo .libs/libcsn.a -lm2iso -lm2pim -lm2cor -lm -lpthread -lstdc++ -o speed
+
+nameserver:  libcsn
+	$(LIBTOOL) --tag=CC --mode=compile gm2 -I$(srcdir) -g -c $(srcdir)/nameserver.mod -fpim -flibs=cor,pim,iso -o nameserver.lo
+	$(LIBTOOL) --tag=CC --mode=link gm2 -g -I$(srcdir) -flibs=cor,pim,iso $(srcdir)/nameserver.mod nameserver.lo .libs/libcsn.a -lm -lpthread -lstdc++ -o nameserver
+
+clean-local: force
+	$(RM) *.o *.m *.cpp *~ $(EXAMPLES) *.so *.lo *.la
+	$(RM) -rf .libs *_m2.cpp
+
+clear: force
+	$(RM) *.png *.ms *.cpp
+
+force:

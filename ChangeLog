@@ -1,0 +1,57 @@
+2010-03-12       Gaius Mulley <gaius@gnu.org>
+
+	* Release 0.5:  huge number of changes.
+	* Changes to EAGAIN and non blocking file descriptors.
+	* mrun:  nwo prompts for a password and checks the
+	  /etc/csn.conf for the architectural resources.
+
+2009-11-09       Gaius Mulley <gaius@gnu.org>
+
+	* updated all Modula-2 to use PROTECTION
+          rather than PRIORITY and obtain it from
+          COROUTINES rather than SYSTEM.
+
+2009-03-17       Gaius Mulley <gaius@gnu.org>
+
+	* Release 0.4:
+	* mrun:  first implementation is now complete.	
+	* mrun/obsfucate.py:  new file.
+	* mrun/remote.par:  new file.
+
+2009-03-13       Gaius Mulley <gaius@gnu.org>
+	
+	* mrun/mrun:  new file.
+	* mrun/mrun.py:  new file.
+	* mrun/test.par:  new file.
+
+2008-11-26       Gaius Mulley <gaius@gnu.org>
+	
+        * Release 0.3:
+	* doc/csn.texi:  new file.
+	* doc/gpl.texi:  new file.
+	* doc/fdl.texi:  new file.
+	* Makefile.in:  new rules for building documentation and
+	  the nameserver.
+	* src/csn.def:  removed nameServer and resolvConf.  Altered
+	  NullNetId to a constant record.
+	* src/csn.mod:  nameServer is started if CSN_NAMESERVER is
+	  not set, othersise resolvConf is called with the result
+	  of CSN_NAMESERVER.
+	* src/ex1.mod:  modified to reflect absence of resolvConf
+	  and nameServer.
+	* src/ex2.mod:  modified to reflect absence of resolvConf
+	  and nameServer.
+	* src/speed.mod:  modified to reflect absence of resolvConf
+	  and nameServer.
+	* src/nameserver.mod:  new file.
+	
+2008-11-06       Gaius Mulley <gaius@gnu.org>
+
+	* modified to work with gm2-0.68
+	* make the package contain all source files necessary (rather than
+	  utilise source files from different projects).
+
+2006-09-15       Gaius Mulley <gaius@gnu.org>
+
+	* updated README
+	* added csn into cvs.

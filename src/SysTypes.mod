@@ -1,0 +1,3 @@
+IMPLEMENTATION MODULE SysTypes ;
+
+END SysTypes.

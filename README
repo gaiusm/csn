@@ -1,0 +1,19 @@
+[Currently this repository is incomplete and will fail to build
+and is a work in progress.]
+
+This is a free software implementation of the Meiko CSN.  It is
+implemented in user space using GNU threads and it is written in
+Modula-2.
+
+Not all of the Meiko CSN features are implemented, at present the
+timeout facility only accepts values of 0 (polling) or MAX(CARDINAL)
+infinity.  None of the asynchronous options are implemented either.
+
+However the synchronous routines were simple to use and
+lightweight.  This implementation also includes a 'mrun' program
+written in Python3.  The 'mrun' program reads in a .par file and runs
+the executibles on the required architecture machines.  This 'mrun'
+program can be used without the csn, for example it would be very
+useful when trying to debug a client server socket program.
+
+This package requires GNU Modula-2, Python3, pexpect and swig to build.

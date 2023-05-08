@@ -1,0 +1,9 @@
+par
+   processor 0 (x86_64) [::] echo 0 ;
+   processor 1 (arm) [::] echo 0 ;
+   processor 2 (arm) [::] echo 0 ;
+end
+
+timeout 2h ;
+# terminal 0 7 9 ;
+# debug gdb {program} processor 1 ;

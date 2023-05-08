@@ -1,0 +1,10 @@
+par
+   processor 0 (x86_64) [::] echo 0 ;
+   for i in 1 to 6 do
+       processor ({i}) (x86_64) [::] echo {i} ;
+   end
+end
+
+timeout 2h ;
+# terminal 0 7 9 ;
+# debug gdb {program} processor 1 ;

@@ -1,0 +1,12 @@
+par
+   processor 0 (localhost) [::] ./manager apple678 2 ;
+   for i in 1 to 2 do
+       processor ({i}) (localhost) [::] ./worker {i} 2 ;
+   end
+end
+
+timeout 8h ;
+terminal 0 1 2 ;
+debug gdb {program} processor 0 ;
+debug gdb {program} processor 1 ;
+debug gdb {program} processor 2 ;

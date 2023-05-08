@@ -1,0 +1,8 @@
+par
+   processor 0 (localhost) [::] ./txhello ;
+   processor 1 (localhost) [::] ./rxhello ;
+end
+
+timeout 2h ;
+# terminal 0 1 ;
+

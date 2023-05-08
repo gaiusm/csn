@@ -1,0 +1,17 @@
+par
+   processor 0 (x86_64) [:5756-4539-5051-3D3D:/home/gaius/Sandpit/build-csn] ./speed ;
+   processor 1 (x86_64) [:5756-4539-5051-3D3D:/home/gaius/Sandpit/build-csn] ./speed 0 ;
+   processor 2 (x86_64) [:5756-4539-5051-3D3D:/home/gaius/Sandpit/build-csn] ./speed 1 ;
+end
+
+timeout 2h ;
+# terminal 0 1 ;
+# debug ddd --debugger "gdb speed" processor 1 ;
+# debug ddd --debugger "gdb speed" processor 2 ;
+
+# debug emacs -title processor_1 processor 1 ;
+# debug emacs -title processor_2 processor 2 ;
+# debug gdb speed processor 0 1 2 ;
+terminal 0 1 2 ;
+# terminal 1 ;
+# debug gdb speed processor 1 ;

@@ -1,0 +1,146 @@
+DEFINITION MODULE csn ;
+
+(*
+    Title      : csn
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Tue Aug 26 11:33:52 2006
+    Description: provides a csn interface to a message passing paradigm.
+                 The interface attempts to remain close to that published
+                 by MEiKO. However the implementation is, I suspect,
+                 totally different.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+EXPORT QUALIFIED Transport, NetId, CsnStatus, CsnFlags,
+                 NullNetId,
+                 Open, LookupName, RegisterName,
+                 Tx, Rx, TxNb, RxNb, Close, Test ;
+
+CONST
+   NullNetId = NetId{0, 0} ;
+
+TYPE
+   Transport ;
+
+   NetId = RECORD
+              ip  : CARDINAL ;
+              port: CARDINAL ;
+           END ;
+
+   CsnStatus = (CsnTxReady, CsnRxReady, CsnTimeout, CsnOk, CsnNoHeap,
+                CsnIllegalNetId, CsnUnitializedTransport,
+                CsnNetIdAlreadyRegistered, CsnOverrun, CsnBusy) ;
+   CsnFlags  = SET OF CsnStatus ;
+
+
+(*
+   Open - creates a new transport, t, and returns status.
+*)
+
+PROCEDURE Open (VAR t: Transport) : CsnStatus ;
+
+
+(*
+   Close - closes a transport, t, and returns status.
+*)
+
+PROCEDURE Close (VAR t: Transport) : CsnStatus ;
+
+
+(*
+   RegisterName - gives a, name, to transport, t, which can later be
+                  looked up by another process.
+*)
+
+PROCEDURE RegisterName (t: Transport; name: ARRAY OF CHAR) : CsnStatus ;
+
+
+(*
+   LookupName - blocks until a netid, n, becomes registered with, name.
+*)
+
+PROCEDURE LookupName (VAR n: NetId; name: ARRAY OF CHAR) : CsnStatus ;
+
+
+(*
+   Tx - transmits a block of memory to a network address, n.
+        The block of memory is defined as: a..a+l.
+*)
+
+
+PROCEDURE Tx (t: Transport; n: NetId; a: ADDRESS; l: CARDINAL) : CsnStatus ;
+
+
+(*
+   Rx - receives a message into a block of memory from a network address, n.
+        Note that the actual number of bytes received can be smaller than
+        the block of memory defined in the call to Rx.
+        If the network address is NullId then it will accept a message from
+        any other transport. When the function returns NetId will contain
+        the netid of the sender.
+*)
+
+PROCEDURE Rx (t: Transport; VAR n: NetId; a: ADDRESS; l: CARDINAL;
+              VAR ActualReceived: CARDINAL) : CsnStatus ;
+
+
+(*
+   TxNb - transmits a block of memory: a..a+l to address, netid.
+          This function may return before the data is sent.
+          The completion of this action *must* be tested by a call to
+          Test.
+*)
+
+PROCEDURE TxNb (t: Transport; n: NetId; a: ADDRESS; l: CARDINAL) : CsnStatus ;
+
+
+(*
+   RxNb - receives a block of memory from a transport address, netid.
+          Note that the actual number of bytes received can be smaller than
+          the block of memory defined in the call to RxNb.
+          If the network address is NullId then it will accept a message from
+          any other transport.
+          Note that the function may return before the data has been received
+          and also NetId may be updated later.
+          The completion of this action *must* be tested by a call to
+          Test.
+*)
+
+PROCEDURE RxNb (t: Transport; a: ADDRESS; l: CARDINAL;
+                VAR ActualReceived: CARDINAL) : CsnStatus ;
+
+
+(*
+   Test - tests whether a non blocking operation has completed.
+          Each non blocking operation TxNb and RxNb must be followed
+          (at some stage) by a call to Test. This does not have to be
+          done immediately or before another call to TxNb etc.
+
+          Given a transport, t, Test sees whether a non blocking operation
+          has completed on the transport. It tests for TxReady or RxReady
+          dependant upon the flags.
+
+          The timeout value indicates how long the Test should wait:
+          0                 do not wait (ie poll and return immediately)
+          MAX(CARDINAL)     wait until the operation completes.
+          0<n<MAX(CARDINAL) wait for n microseconds or until completion
+
+          The most complicated of all functions in this definition module.
+          The parameters are divided into two sections:
+          t, flags, timeout:   refer to the actual Test.
+
+          n, a, s          :   are filled in by test but refer to
+                               the completed operation.
+                               n is the netid of the transport communicating
+                               with t.
+                               a is the start of the block of memory which
+                               has completed.
+                               s is the status of the completed operation.
+*)
+
+PROCEDURE Test (t: Transport; flags: CsnFlags; timeout: CARDINAL;
+                VAR n: NetId; VAR a: ADDRESS; VAR s: CsnStatus) : CsnStatus ;
+
+
+END csn.

@@ -1,0 +1,718 @@
+\input texinfo   @c -*-texinfo-*-
+@comment $Id: csn.texi,v 1.3 2010-03-12 11:44:02 gaius Exp $
+@comment %**start of header
+@setfilename csn.info
+
+@include version.texi
+@settitle GNU CSN library @value{version-csn}
+@syncodeindex pg cp
+@comment %**end of header
+@copying
+This manual is for GNU CSN
+(version @value{version-csn}, @value{updated-last}).
+
+Copyright @copyright{} 2008, 2009, 2010 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License.''
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end quotation
+@end copying
+
+@dircategory Texinfo documentation system
+@direntry
+* csn: (csn)Computing Surface Network library.
+@end direntry
+
+@titlepage
+@title GNU CSN library
+@subtitle for version @value{version-csn}, @value{updated-last}
+@author Gaius Mulley (@email{gaius@@gnu.org})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, , (dir), (dir)
+@top GNU Computing Surface Network library
+
+@insertcopying
+@end ifnottex
+
+@menu
+* About CSN::
+* Obtaining CSN::
+* Building CSN::
+* CSN Modula-2 application programming interface::
+* CSN Python interface::
+* CSN C interface::
+* Tiny example using the CSN::
+* Running the CSN::
+* Copying this manual::
+* Copying this library::
+* Index::
+@end menu
+
+@node About CSN, , (dir), (dir)
+@chapter About CSN
+
+The Computing Surface Network library is a reimplementation of the
+library that the supercomputer vendor Meiko
+@uref{http://www.meiko.com} shipped with its CS1 and CS2
+supercomputers in the late 1980s and early 1990s.  The CSN library is
+a competitor to MPI and OpenMP.  It also predates them.  However it is
+attractive as it has the capability to perform non blocking transmits
+and non blocking receives.  It is a lightweight library and the
+programming interface consists of nine functions.
+This package provides bindings to the CSN library for C and Modula-2.
+
+@c  This package also
+@c  provides bindings to the CSN library for C, Modula-2 and Python.
+
+This implementation of the CSN is written mainly in Modula-2 with some
+C and it is likely that it bares very little resemblence to the
+original (written in C).  The Modula-2 implementation uses the
+availability of coroutines to coordinate the non blocking transfer of
+data.  The coroutines in GNU Modula-2 are implemented on top of pthreads.
+
+@node Obtaining CSN, , (dir), (dir)
+@chapter Obtaining CSN
+
+You can download a copy of the CSN library using the following
+command:
+
+@example
+wget http://floppsie.comp.glam.ac.uk/download/csn/csn-@value{version-csn}.tar.gz
+@end example
+
+You will need to extract the archive using the following command
+line:
+
+@example
+tar xvf csn-@value{version-csn}.tar.gz
+@end example
+
+@node Building CSN, , (dir), (dir)
+@chapter Building CSN
+
+To build the library you can type the following:
+
+@example
+mkdir -p build
+cd build
+../csn-@value{version-csn}/configure
+make
+@end example
+
+The build will require @file{gm2} (GNU Modula-2 release >=0.7.2) and
+@file{libpth-dev} to have been installed.  Details about GNU Modula-2
+can be found here @uref{http://www.nongnu.org/gm2/}.
+
+@node CSN Modula-2 application programming interface, , (dir), (dir)
+@chapter CSN Modula-2 application programming interface
+
+@example
+CONST
+   NullNetId = NetId@{0,0@} ;
+
+TYPE
+   Transport ;
+   NetId ;
+   CsnStatus = (CsnTxReady, CsnRxReady, CsnTimeout, CsnOk,
+                CsnNoHeap, CsnIllegalNetId,
+                CsnUnitializedTransport,
+                CsnNetIdAlreadyRegistered, CsnOverrun) ;
+   CsnFlags  = SET OF CsnStatus ;
+
+
+(*
+   Open - creates a new transport, t, and returns status.
+*)
+
+PROCEDURE Open (VAR t: Transport) : CsnStatus ;
+
+
+(*
+   Close - closes a transport, t, and returns status.
+*)
+
+PROCEDURE Close (VAR t: Transport) : CsnStatus ;
+
+
+(*
+   RegisterName - gives a, name, to transport, t, which
+                  can later be looked up by another process.
+*)
+
+PROCEDURE RegisterName (t: Transport;
+                        name: ARRAY OF CHAR) : CsnStatus ;
+
+
+(*
+   LookupName - blocks until a netid, n, becomes registered
+                with, name.
+*)
+
+PROCEDURE LookupName (VAR n: NetId;
+                      name: ARRAY OF CHAR) : CsnStatus ;
+
+
+(*
+   Tx - transmits a block of memory to a network address, n.
+        The block of memory is defined as: a..a+l.
+*)
+
+
+PROCEDURE Tx (t: Transport; n: NetId;
+              a: ADDRESS; l: CARDINAL) : CsnStatus ;
+
+
+(*
+   Rx - receives a message into a block of memory from a network
+        address, n.  Note that the actual number of bytes
+        received can be smaller than the block of memory defined
+        in the call to Rx.  If the network address is NullId
+        then it will accept a message from any other transport.
+        When the function returns NetId will contain
+        the netid of the sender.
+*)
+
+PROCEDURE Rx (t: Transport; VAR n: NetId; a: ADDRESS; l: CARDINAL;
+              VAR ActualReceived: CARDINAL) : CsnStatus ;
+
+
+(*
+   TxNb - transmits a block of memory: a..a+l to address, netid.
+          This function may return before the data is sent.
+          The completion of this action *must* be tested by a call
+          to Test.
+*)
+
+PROCEDURE TxNb (t: Transport; n: NetId;
+                a: ADDRESS; l: CARDINAL) : CsnStatus ;
+
+
+(*
+   RxNb - receives a block of memory from a transport address,
+          netid.  Note that the actual number of bytes received
+          can be smaller than the block of memory defined in the
+          call to RxNb.  If the network address is NullId then
+          it will accept a message from any other transport.
+          Note that the function may return before the data has
+          been received and also NetId may be updated later.
+          The completion of this action *must* be tested by a
+          call to Test.
+*)
+
+PROCEDURE RxNb (t: Transport; a: ADDRESS; l: CARDINAL;
+                VAR ActualReceived: CARDINAL) : CsnStatus ;
+
+
+(*
+   Test - tests whether a non blocking operation has completed.
+          Each non blocking operation TxNb and RxNb must be
+          followed (at some stage) by a call to Test. This does
+          not have to be done immediately or before another
+          call to TxNb etc.
+
+          Given a transport, t, Test sees whether a non
+          blocking operation has completed on the transport.
+          It tests for TxReady or RxReady dependant upon the flags.
+
+          The timeout value indicates how long the Test should
+          wait:
+
+          0                   do not wait (ie poll and return
+                              immediately)
+          UINT_MAX            wait until the operation completes.
+          0<n<UINT_MAX        wait for n microseconds or until
+                              completion.
+
+          The most complicated of all functions in this definition
+          module.  The parameters are divided into two sections:
+          t, flags, timeout:   refer to the actual Test.
+
+          n, a, s     :   are filled in by test but refer to
+                          the completed operation.
+
+                          n is the netid of the transport
+                            communicating with t.
+                          a is the start of the block of memory
+                            which has completed.
+                          s is the status of the completed
+                            operation.
+*)
+
+PROCEDURE Test (t: Transport; flags: CsnFlags;
+                timeout: CARDINAL; VAR n: NetId;
+                VAR a: ADDRESS; VAR s: CsnStatus) : CsnStatus ;
+@end example
+
+@node CSN Python interface, , (dir), (dir)
+@chapter CSN Python interface
+
+Needs to be completed (--fixme--).
+
+@node CSN C interface, , (dir), (dir)
+@chapter CSN C interface
+
+@example
+/*
+ *   csn.h - prototypes for the csn reimplementation.
+ */
+
+#if defined(CSN_C)
+#   define EXTERN
+#else
+#   define EXTERN extern
+#endif
+
+typedef void* transport;
+
+typedef struct netid_t @{
+  unsigned int ip;
+  unsigned int port;
+@} netid;
+
+typedef enum @{CsnTxReady, CsnRxReady, CsnTimeout, CsnOk, CsnNoHeap,
+              CsnIllegalNetId, CsnUnitializedTransport,
+              CsnNetIdAlreadyRegistered, CsnOverrun@} csn_status;
+
+typedef unsigned int csn_flags;
+
+#define debugf(X)   printf("%s:%d% in function %s %s\n", \
+           __FILE__, __LINE__, __FUNCTION__, X)
+
+#define csn_nullnetid (netid)@{0,0@}
+
+
+/*
+ *  open - creates a new transport, t, and returns status.
+ */
+
+EXTERN csn_status csn_open (transport *t);
+
+
+/*
+ *  close - closes a transport, t, and returns status.
+ */
+
+EXTERN csn_status csn_close (transport *t);
+
+
+/*
+ *  registername - gives a, name, to transport, t, which can
+ *                 later be looked up by another process.
+ */
+
+EXTERN csn_status csn_registername (transport t, char *name);
+
+
+/*
+ *  lookupname - blocks until a netid, n, becomes registered
+ *               with, name.
+ */
+
+EXTERN csn_status csn_lookupname (netid *n, char *name);
+
+
+/*
+ *  tx - transmits a block of memory to a network address, n.
+ *       The block of memory is defined as: a..a+l.
+ */
+
+EXTERN csn_status csn_tx (transport t, netid n, void *a,
+                          unsigned int l);
+
+
+/*
+ *  rx - receives a message into a block of memory from a
+ *       network address, n.  Note that the actual number
+ *       of bytes received can be smaller than
+ *       the block of memory defined in the call to Rx.
+ *       If the network address is NullId then it will
+ *       accept a message from any other transport.
+ *       When the function returns NetId will contain
+ *       the netid of the sender.
+ */
+
+EXTERN csn_status csn_rx (transport t, netid *n, void *a,
+                          unsigned int l,
+                          unsigned int *actualReceived);
+
+
+/*
+ *  txnb - transmits a block of memory: a..a+l to address,
+ *         netid.  This function may return before the data
+ *         is sent.  The completion of this action *must*
+ *         be tested by a call to csn_test.
+ */
+
+EXTERN csn_status csn_txnb (transport t, netid n, void *a,
+                            unsigned int l);
+
+
+/*
+ *  rxnb - receives a block of memory from a transport
+ *         address, netid.  Note that the actual number
+ *         of bytes received can be smaller than the block
+ *         of memory defined in the call to RxNb. If the
+ *         network address is NullId then it will accept a
+ *         message from any other transport.
+ *         Note that the function may return before the
+ *         data has been received and also NetId may be
+ *         updated later.  The completion of this action
+ *         *must* be tested by a call to csn_test.
+ */
+
+EXTERN csn_status csn_rxnb (transport t, void *a, unsigned int l,
+		            unsigned int *actualReceived);
+
+
+/*
+   Test - tests whether a non blocking operation has completed.
+          Each non blocking operation TxNb and RxNb must be
+          followed (at some stage) by a call to Test. This does
+          not have to be done immediately or before another
+          call to TxNb etc.
+
+          Given a transport, t, Test sees whether a non
+          blocking operation has completed on the transport.
+          It tests for TxReady or RxReady dependant upon the flags.
+
+          The timeout value indicates how long the Test should
+          wait:
+
+          0               do not wait (ie poll and return
+                          immediately)
+          UINT_MAX        wait until the operation completes.
+          0<n<UINT_MAX    wait for n microseconds or until
+                          completion.
+
+          The most complicated of all functions in this definition
+          module.  The parameters are divided into two sections:
+          t, flags, timeout:   refer to the actual Test.
+
+          n, a, s     :   are filled in by test but refer to
+                          the completed operation.
+
+                          n is the netid of the transport
+                            communicating with t.
+                          a is the start of the block of memory
+                            which has completed.
+                          s is the status of the completed
+                            operation.
+*/
+
+EXTERN csn_status csn_test (transport t, csn_flags flags,
+                            unsigned int timeout,
+			    netid n, void *a, csn_status s);
+
+
+/*
+ * nameServer - temporary hack, indicates that the caller is
+ *              the csn name server.
+ */
+
+EXTERN void csn_nameserver (char *name);
+
+
+/*
+ *  resolvConf - tells the csn subsystem to use, name, as the
+ *               csn name server.
+ */
+
+EXTERN void csn_resolvconf (char *name);
+
+#undef EXTERN
+@end example
+
+@node Tiny example using the CSN, , (dir), (dir)
+@chapter Tiny example using the CSN
+
+Here is a tiny example @file{txhello.c} which opens up a transport,
+looks up the destination transport address, assigns @code{Hello world}
+to a string and transmits it to the sink.
+
+@example
+#include <csn.h>
+#include <stdio.h>
+#include <string.h>
+
+main()
+@{
+  transport  tpt;
+  netid      sinkId;
+  csn_status status;
+  char       buffer[80];
+
+  if (csn_open (&tpt) != CsnOk)
+    debugf ("failed to open transport");
+
+  if (csn_lookupname (&sinkId, "sink") != CsnOk)
+    debugf ("failed to lookup filter program");
+
+  strcpy (buffer, "Hello world");
+
+  status = csn_tx (tpt, sinkId, &buffer, strlen (buffer)+1);
+  if (status != CsnOk)
+    debugf ("failed to send string to sink process");
+@}
+@end example
+
+The receiving code is shown below:
+
+@example
+#include <csn.h>
+#include <stdio.h>
+
+main()
+@{
+  transport    tpt;
+  unsigned int actual;
+  netid        id;
+  csn_status   status;
+  char         buffer[80];
+
+  if (csn_open (&tpt) != CsnOk)
+    debugf("failed to open transport");
+
+  /* we register our transport */
+  if (csn_registername (tpt, "sink") != CsnOk)
+    debugf("failed to register name");
+
+  id = csn_nullnetid;   /* receive from anyone */
+  status = csn_rx (tpt, &id, &buffer, sizeof(buffer), &actual);
+
+  if (status == CsnOk)
+    printf("sink received string: %s containing %d bytes\n",
+            buffer, actual);
+  else
+    debugf("csn_rx failed");
+@}
+@end example
+
+@node Running the CSN, mrun, (dir), (dir)
+@chapter Running the CSN
+
+While it is possible to run the executables by using @code{ssh} to
+connect to different machines,  a manual approach soon becomes
+tedius.  The approach advocated here is to use the tool @code{mrun}.
+This tool is configured by a @file{filename.par} file and allows
+individual programs to be run in different windows or to be run under
+a debugger.  For example here is the configuration for the tiny CSN
+example shown earlier:
+
+@example
+par
+   processor 0 (x86) [::] ./ex1 ;
+   processor 1 (x86) [::] ./ex1 0 ;
+end
+
+timeout 2m ;
+terminal 0 1 ;
+debug gdb @{program@} processor 0 ;
+@end example
+
+Here the program @file{ex1} will be run on two @code{x86} machines.
+The first machine (@code{processor 0}) will run the program
+@code{./ex1}, whereas the second machine (@code{processor 0}) will run
+the same executable @code{ex1 0}.  The @code{mrun} harness is told to
+kill off the application after two hours and @code{processor 0} and
+@code{processor 1} will run in separate terminal windows.  The first
+machine (@code{processor 0}) will be debugged using @code{gdb}.
+
+The @code{[::]} after the processor keyword can be used to specify the
+username, password and remote directory to use on the remote machine.
+If, as in this case, the fields are blank then the username is
+obtained from the @code{mrun} host, the user password will be prompted
+for the remote password and the directory used will be the current
+working direction on hte @code{mrun} host.  Users may include their
+password in the @file{filename.par} file.  However it must be
+obfuscated.  To obfuscate your password you need to run:
+
+@example
+$ mrun -p
+Enter password to obfuscate: *****
+
+obfuscated password: 1234-4567-1234-4567
+@end example
+
+this obfuscated password can be positioned into the second field in
+the @code{[::]} entry.  Note that this technique does not provide much
+security, it is only designed to make shoulder surfing unlikely in a
+laboratory environment.  As such it should be used sparingly!  You
+should never interchange @file{filename.par} files with other users if
+this field is used.
+
+If a @file{filename.par} does not specify that the output from a
+processor should be sent to a window then @code{mrun} will capture
+the output and prefix it with the processor id.  For example suppose
+we use the following @file{tiny.par} configuration.  The session
+output is displayed as follows:
+
+@example
+$ ./mrun -f tiny.par
+waiting for the nameserver to become available: . . . . . success
+press the <enter> key to terminate
+<processor 0>:
+<processor 0>:$ ~/Sandpit/build-csn$ export CSN_NAMESERVER=localhost
+<processor 0>:$ ~/Sandpit/build-csn$
+<processor 0>:$ ~/Sandpit/build-csn$ ./ex1
+<processor 0>:
+<processor 0>:sink received string: Hello world
+<processor 0>:$ ~/Sandpit/build-csn$
+<processor 1>:
+<processor 1>:$ ~/Sandpit/build-csn$ export CSN_NAMESERVER=localhost
+<processor 1>:$ ~/Sandpit/build-csn$
+<processor 1>:$ ~/Sandpit/build-csn$ ./ex1 0
+<processor 1>:$ ~/Sandpit/build-csn$
+@end example
+
+When the user presses the @code{<enter>} key then @file{mrun} will
+tidy up all remote processes, as shown below:
+
+@example
+halting and tidying up.. done
+@end example
+
+The tidying up will halt all remote processes, debugging sessions and
+windows associated with @code{mrun}.  This enables a quicker
+turnaround during the edit, compile, debug cycle.
+
+@file{mrun} can be used to run any program on remote machines.  In the
+example given below runs the command program @file{echo} on seven
+processors.  Each @file{echo} program outputs the processor number
+specified as a constant literal for processor 0 and @code{@{i@}}
+within the @code{for} loop.
+
+@example
+par
+   processor 0 (x86_64) [::] echo 0 ;
+   for i in 1 to 6 do
+       processor (@{i@}) (x86_64) [::] echo @{i@} ;
+   end
+end
+
+timeout 2m ;
+@end example
+
+@node mrun, , Running the CSN, (dir)
+@chapter mrun
+
+This section describes @file{mrun}s options.
+
+@table @code
+
+@item -h
+displays an option summary for @file{mrun}.
+@example
+$ mrun -h
+usage:  mrun [-h][-v][-d][-p][-L] [-f filename]
+        -h   help.
+        -v   verbose, display all ssh commands.
+        -d   turn on mrun internal debugging.
+        -p   prompt user for a password and obfuscates it.
+        -f   filename.  Use filename for input.
+        -L   display all the available processors.
+@end example
+
+@item -v
+display all the @file{ssh} commands, it also displays the threads.
+Generally it is useful to check that the @file{ssh} sessions can
+connect to the processor pool.
+
+@item -d
+turn on internal debugging.  Displays the tokens in the @file{.par}
+file and which directory the remote shell is using.
+
+@item -p
+prompt user for a password and obfuscates it.  The obfuscated
+password is written to stdout.
+
+@item -f
+specify the @code{filename.par}.
+
+@item -L
+display all processors available in the pool.  @file{mrun} will check
+to see whether @file{ssh} can connect to each processor specified in
+the @file{/etc/csn.conf} or @file{$HOME/csn.conf}.
+
+@example
+python mrun.py -L
+Processor pool x86_64 has 3 available processors
+
+    mcgreg.comp.glam.ac.uk j203-02.isd.glam.ac.uk
+    j204-05.isd.glam.ac.uk
+@end example
+@end table
+
+@node mrun .par ebnf, , (dir), (dir)
+@chapter mrun .par ebnf
+
+This section documents the ebnf for the @file{.par} file.
+
+@example
+ebnf := "par" statementSeq "end" @{ config @} =:
+
+statementSeq := procStatement | forStatement =:
+
+procStatement := "processor" id machine userPassDir
+                  command ";" =:
+
+forStatement := "for" var "in" expression "to" expression
+                 [ "by" expression ] "do"
+                     statementSeq
+                "end" =:
+
+config := "timeout" time ";" |
+          "terminal" idList ";" |
+          "debug" debugCommand "processor" idList ";" =:
+
+idList := id @{ id @} =:
+
+time := integer 's' | integer 'm' | integer 'h' | integer 'd' =:
+
+debugCommand := command @{ command @} =:
+
+command := word | "@{program@}" | "@{argv@}" =:
+
+expression :=
+@end example
+
+@node Copying this manual, , (dir), (dir)
+@appendix Copying this manual
+
+@menu
+* GNU Free Documentation License::  License for copying this manual.
+@end menu
+
+@include fdl.texi
+
+@node Copying this library, , (dir), (dir)
+@appendix Copying this library
+
+@menu
+* Copying::  License for copying this library.
+@end menu
+
+@include gpl.texi
+
+@node Index, , (dir), (dir)
+@unnumbered Index
+
+@printindex cp
+
+@bye

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+prefix=@prefix@
+srcdir=@srcdir@
+mandir=@mandir@
+exec_prefix=@exec_prefix@
+datarootdir=@datarootdir@
+bindir=@bindir@
+csndir=${datarootdir}/csn
+
+PYTHONPATH=${PYTHONPATH}:${csndir}
+export PYTHONPATH
+
+python3 ${csndir}/mrun.py $*

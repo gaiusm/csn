@@ -1,0 +1,6 @@
+#!/bin/sh
+
+cp ../speed .
+unset DISPLAY
+emacs .gdbinit
+

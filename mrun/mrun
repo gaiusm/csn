@@ -1,0 +1,14 @@
+#!/bin/bash
+
+prefix=/usr/local
+srcdir=.
+mandir=${datarootdir}/man
+exec_prefix=${prefix}
+datarootdir=${prefix}/share
+bindir=${exec_prefix}/bin
+csndir=${datarootdir}/csn
+
+PYTHONPATH=${PYTHONPATH}:${csndir}
+export PYTHONPATH
+
+python ${csndir}/mrun.py $*

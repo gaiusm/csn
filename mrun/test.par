@@ -1,0 +1,13 @@
+par
+   processor 0 (x86_64) [:1234-1234-1234-1234:] ./a.out ;
+   processor 1 (x86_64) [:1234-1234-1234-1234:] ./a.out 1 ;
+   for i in 3 to 9 by 3 do
+       for j in 1 to 3 do
+          processor ({i}+{j}-2) (x86_64) [:1234-1234-1234-1234:] ./a.out {i} {j} ({i}*12/6-1) ;
+       end
+   end
+end
+
+timeout 2h ;
+terminal 0 7 9 ;
+debug gdb {program} processor 1 ;

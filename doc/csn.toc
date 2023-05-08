@@ -1,0 +1,19 @@
+@numchapentry{About CSN}{1}{About CSN}{1}
+@numchapentry{Obtaining CSN}{2}{Obtaining CSN}{2}
+@numchapentry{Building CSN}{3}{Building CSN}{3}
+@numchapentry{CSN Modula-2 application programming interface}{4}{CSN Modula-2 application programming interface}{4}
+@numchapentry{CSN Python interface}{5}{CSN Python interface}{7}
+@numchapentry{CSN C interface}{6}{CSN C interface}{8}
+@numchapentry{Tiny example using the CSN}{7}{Tiny example using the CSN}{12}
+@numchapentry{Running the CSN}{8}{Running the CSN}{14}
+@numchapentry{mrun}{9}{mrun}{16}
+@numchapentry{mrun .par ebnf}{10}{mrun .par ebnf}{17}
+@appentry{Copying this manual}{A}{Copying this manual}{18}
+@unnchapentry{GNU Free Documentation License}{10001}{GNU Free Documentation License}{19}
+@unnsecentry{ADDENDUM: How to use this License for your documents}{10001.1}{}{25}
+@appentry{Copying this library}{B}{Copying this library}{26}
+@unnchapentry{GNU GENERAL PUBLIC LICENSE}{10002}{Copying}{27}
+@unnsecentry{Preamble}{10002.1}{}{27}
+@unnsecentry{TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION}{10002.2}{}{28}
+@unnsecentry{Appendix: How to Apply These Terms to Your New Programs}{10002.3}{}{32}
+@unnchapentry{Index}{10003}{Index}{33}

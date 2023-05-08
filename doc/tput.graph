@@ -1,0 +1,90 @@
+graph begin
+   title "Free CSN Throughput source, filter, sink"
+   type graph
+
+   width 5i height 3i xaxis "Blocksize \[mu] %s bytes " yaxis "%s MBytes/sec "
+   loglog
+   dashed line begin "double buffering" {
+        64     1,
+       128     2,
+       256     5,
+       512    12,
+      1024    11,
+      2048    40,
+      4096    37,
+      8192    69,
+     16384   137,
+     32768   203,
+     65536   274,
+    131072   297,
+    262144   285,
+    524288   280,
+   1048576   268
+   } end line
+   solid line begin "quadruple buffering" {
+         64    1,
+        128    2,
+        256    4,
+        512   12,
+       1024   23,
+       2048   33,
+       4096   70,
+       8192   67,
+      16384  178,
+      32768  248,
+      65536  306,
+      65536  303,
+     131072  257,
+    262144   279,
+    524288   297,
+    1048576  268
+   } end line
+
+   dotted line begin "single buffering" {
+         64     1,
+        128     2,
+        256     4,
+        512     8,
+       1024    14,
+       2048    19,
+       4096    47,
+       8192    89,
+      16384   137,
+      32768   205,
+      65536   283,
+     131072   365,
+     262144   329,
+     524288   272,
+    1048576   268
+  } end line
+end graph
+
+
+single socket server (send, rec -tcp)
+
+time to send     10 blocks of 67108864 bytes is 0.779 seconds
+time to send     20 blocks of 33554432 bytes is 0.779 seconds
+time to send     40 blocks of 16777216 bytes is 0.783 seconds
+time to send     80 blocks of 8388608 bytes is 0.790 seconds
+time to send    160 blocks of 4194304 bytes is 0.790 seconds
+time to send    320 blocks of 2097152 bytes is 0.789 seconds
+time to send    640 blocks of 1048576 bytes is 0.769 seconds
+time to send   1280 blocks of 524288 bytes is 0.729 seconds
+time to send   2560 blocks of 262144 bytes is 0.710 seconds
+time to send   5120 blocks of 131072 bytes is 0.713 seconds
+time to send  10240 blocks of  65536 bytes is 0.713 seconds
+time to send  20480 blocks of  32768 bytes is 0.719 seconds
+time to send  40960 blocks of  16384 bytes is 0.713 seconds
+time to send  81920 blocks of   8192 bytes is 0.810 seconds
+time to send 163840 blocks of   4096 bytes is 0.887 seconds
+time to send 327680 blocks of   2048 bytes is 1.061 seconds
+time to send 655360 blocks of   1024 bytes is 1.406 seconds
+time to send 1310720 blocks of    512 bytes is 2.121 seconds
+time to send 2621440 blocks of    256 bytes is 3.122 seconds
+time to send 5242880 blocks of    128 bytes is 7.849 seconds
+time to send 10485760 blocks of     64 bytes is 21.369 seconds
+time to send 20971520 blocks of     32 bytes is 41.032 seconds
+time to send 41943040 blocks of     16 bytes is 82.084 seconds
+
+</CORRECT>
+
