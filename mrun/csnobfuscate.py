@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import getpass, base64
+import getpass, base64, sys
 
 
 def encode (password):
     #Encode 3 times
     password = password.rstrip ()
-    encoded = base64.b16encode (base64.b64encode(base64.b64encode(password)))
+    encoded = base64.b16encode (base64.b64encode (base64.b64encode (password.encode ('utf-8')))).decode ('utf-8')
     i = 0
     password = ''
     while i < len(encoded):
@@ -20,7 +20,7 @@ def encode (password):
 def decode (password):
     password = password.rstrip ()
     password = password.replace ('-', '')
-    return base64.b64decode (base64.b64decode (base64.b16decode (password)))
+    return base64.b64decode (base64.b64decode (base64.b16decode (password.encode ('utf-8')))).decode ('utf-8')
 
 def makePassword():
     pw = getpass.getpass ("Enter password to obfuscate: ")

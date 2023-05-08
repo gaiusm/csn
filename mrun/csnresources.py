@@ -41,7 +41,7 @@ def scanMachine (arch, machine):
     # s.setblocking(0)
     s.settimeout(PortTimeout)
     if s.connect_ex((machine, SSHPORT)) == 0:
-        if processors.has_key(arch):
+        if arch in processors:
             processors[arch] += [machine]
         else:
             processors[arch] = [machine]
@@ -92,7 +92,7 @@ def scanMachines (arch, line):
 
 def lookupMachine (arch, syntaxError):
     global processors, available, debugging
-    if processors.has_key(arch):
+    if arch in processors:
         if debugging:
             print (available[arch])
             print (processors[arch])
